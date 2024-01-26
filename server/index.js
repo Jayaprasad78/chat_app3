@@ -11,16 +11,6 @@ require("dotenv").config();
 app.use(express.json());
 
 
-//  mongoose
-//    .connect('mongodb+srv://jayaprasadb718:xZGx4lUaHFeYE4fR@cluster0.shd9di5.mongodb.net/jayaprasadb718?retryWrites=true&w=majority',{writeConcern:{w:'majority'}})
-// .then(()=>{
-//     console.log("database is connected")
-
-// })
-// .catch((err)=>{
-//     console.log("error in connecting database", err)
-
-// })
 
 
 

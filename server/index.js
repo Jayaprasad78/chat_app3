@@ -47,6 +47,10 @@ mongoose
     console.log('error in connecting database',err.message);
   });
 
+app.get("/", (req, res) => {
+    res.json("Hello");
+})
+
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 

@@ -4,68 +4,54 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth");
 const messageRoutes = require("./routes/messages");
 const app = express();
-const socket = require("socket.io");
-require("dotenv").config();
-
-
-app.use(express.json());
-
-
-
-
-
-app.use(cors(
-    {
-        origin: ["https://chat-app3-frontend.vercel.app"],
-        methods: ["POST", "GET"],
-        credentials: true
-    }
-));
-
-
-
-
-mongoose
-  .connect('mongodb+srv://jayaprasadb718:xZGx4lUaHFeYE4fR@cluster0.shd9di5.mongodb.net/jayaprasadb718?retryWrites=true&w=majority',{writeConcern:{w:'majority'}}, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("DB Connetion Successfull");
-  })
-  .catch((err) => {
-    console.log('error in connecting database',err.message);
-  });
-
-app.get("/", (req, res) => {
-    res.json("Hello");
-})
-
-app.use("/api/auth", authRoutes);
-app.use("/api/messages", messageRoutes);
-
-const server = app.listen(process.env.PORT, () =>
-  console.log(`Server started on ${process.env.PORT}`)
-);
-const io = socket(server, {
+const httpServer = require("http").createServer(app);  // Create an HTTP server instance
+const io = require("socket.io")(httpServer, {
   cors: {
-    origin: "https://chat-app3-frontend.vercel.app",
+    origin: "http://localhost:3000",
     credentials: true,
   },
 });
 
+require("dotenv").config();
 
-global.onlineUsers = new Map();
-io.on("connection", (socket) => {
-  global.chatSocket = socket;
-  socket.on("add-user", (userId) => {
-    onlineUsers.set(userId, socket.id);
+app.use(cors());
+app.use(express.json());
+
+mongoose
+  .connect('mongodb+srv://jayaprasadb718:xZGx4lUaHFeYE4fR@cluster0.shd9di5.mongodb.net/jayaprasadb718?retryWrites=true&w=majority', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("DB Connection Successful");
+  })
+  .catch((err) => {
+    console.log('Error in connecting to the database', err.message);
   });
 
-  socket.on("send-msg", (data) => {
-    const sendUserSocket = onlineUsers.get(data.to);
-    if (sendUserSocket) {
-      socket.to(sendUserSocket).emit("msg-recieve", data.msg);
+app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
+
+httpServer.listen(process.env.PORT, () =>
+  console.log(`Server started on ${process.env.PORT}`)
+);
+
+io.on("connection", (socket) => {
+  socket.on("join-chat", (userId) => {
+    // You can use userId or chatId as a room identifier
+    socket.join(userId);
+    console.log(`User ${socket.id} joined chat ${userId}`);
+  });
+
+  socket.on("send-msg", (data, callback) => {
+    try {
+      const { to, msg } = data;
+      io.to(to).emit("msg-recieve", msg);
+      console.log(`Message sent to ${to}: ${msg}`);
+      callback({ status: "success", message: "Message sent successfully" });
+    } catch (error) {
+      console.error("Error sending message:", error.message);
+      callback({ status: "error", message: error.message });
     }
   });
 });

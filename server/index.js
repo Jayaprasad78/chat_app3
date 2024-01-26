@@ -16,7 +16,7 @@ app.use(express.json());
 
 app.use(cors(
     {
-        origin: ["https://deploy-mern-frontend.vercel.app"],
+        origin: ["https://chat-app3-frontend.vercel.app"],
         methods: ["POST", "GET"],
         credentials: true
     }
@@ -49,10 +49,11 @@ const server = app.listen(process.env.PORT, () =>
 );
 const io = socket(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "https://chat-app3-frontend.vercel.app",
     credentials: true,
   },
 });
+
 
 global.onlineUsers = new Map();
 io.on("connection", (socket) => {

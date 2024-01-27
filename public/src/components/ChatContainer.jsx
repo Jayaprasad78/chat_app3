@@ -55,10 +55,17 @@ export default function ChatContainer({ currentChat, socket }) {
 
   useEffect(() => {
     if (socket.current) {
-      socket.current.on("msg-recieve", (msg) => {
+      socket.current.on("msg-receive", (msg) => {
         setArrivalMessage({ fromSelf: false, message: msg });
       });
     }
+
+    return () => {
+      // Clean up the event listener when the component unmounts
+      if (socket.current) {
+        socket.current.off("msg-receive");
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -86,21 +93,19 @@ export default function ChatContainer({ currentChat, socket }) {
         <Logout />
       </div>
       <div className="chat-messages">
-        {messages.map((message) => {
-          return (
-            <div ref={scrollRef} key={uuidv4()}>
-              <div
-                className={`message ${
-                  message.fromSelf ? "sended" : "recieved"
-                }`}
-              >
-                <div className="content ">
-                  <p>{message.message}</p>
-                </div>
+        {messages.map((message) => (
+          <div ref={scrollRef} key={uuidv4()}>
+            <div
+              className={`message ${
+                message.fromSelf ? "sended" : "received"
+              }`}
+            >
+              <div className="content ">
+                <p>{message.message}</p>
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
       <ChatInput handleSendMsg={handleSendMsg} />
     </Container>
@@ -179,3 +184,4 @@ const Container = styled.div`
     }
   }
 `;
+
